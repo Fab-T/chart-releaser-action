@@ -255,10 +255,12 @@ release_charts() {
 getGithubReleaseId() {
   # Connect github to check whether or not release already exists
   #TEST
-  #github_answer="_ga_.json"
+  github_answer="_ga_.json"
 
   curl --user ${owner}:${CR_TOKEN} \
      --request GET \
+     --output "$github_answer" \
+     --silent \
      --data @- \
      https://api.github.com/repos/${owner}/${repo}/releases/tags/${release_name} <<END
 END
@@ -269,6 +271,8 @@ END
   #fi
 
   #echo $(getDataField "$github_answer" "id")
+  echo "release result : "
+  cat $github_answer
 
 }
 
@@ -285,8 +289,8 @@ function createRelease(){
 #  fi
   local dField=""
   # Connect github to create release
-  infoMsg "Connecting github to create release: $release_name"
-
+  #infoMsg "Connecting github to create release: $release_name"
+  echo "Connecting github to create release: $release_name"
 #  if [ $# -eq 2 ]; then
 #    release_desc=$2
 #  fi
@@ -302,6 +306,8 @@ function createRelease(){
 END
   curl --user ${owner}:${CR_TOKEN} \
      --request POST \
+     --output "$github_answer" \
+     --silent \
      --data @- \
      https://api.github.com/repos/${owner}/${repo}/releases <<END
 {
@@ -313,6 +319,9 @@ END
  "prerelease": false
 }
 END
+
+echo "Published result: "
+cat $github_answer
 
 #  #do we find that release ?
 #  dField=$(getDataField "$github_answer" "errors.0.code")
