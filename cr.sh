@@ -236,13 +236,108 @@ release_charts() {
         #publish in another repo
         #It isn't currently possible to request page builds as a GitHub App installation (server-to-server request)
         #Modifying repo_url to get a user-to-server request
-        #TODO: Parse charts_repo_url to construct modified_repo_url as owner might not be the correst path
-        modified_repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
-        cr upload -o "$owner" -r "$repo" -u modified_repo_url -t "$CR_TOKEN"
+        #TODO: Parse charts_repo_url to construct modified_repo_url as owner might not be the correct path
+        #modified_repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
+        #cr upload -o "$owner" -r "$repo" -u modified_repo_url -t "$CR_TOKEN"
+
+        getGithubReleaseId
+        createRelease
     else
         #publish locally
         cr upload -o "$owner" -r "$repo"
     fi
+}
+
+getGithubReleaseId() {
+  # Connect github to check whether or not release already exists
+  #TEST
+  #github_answer="_ga_.json"
+
+  curl --user ${owner}:${CR_TOKEN} \
+     --request GET \
+     #--output "$github_answer" \
+     #--silent \
+     --data @- \
+     https://api.github.com/repos/${OWNER}/${REPOSITORY}/releases/tags/${1} <<END
+END
+
+  #do we have an error ?
+  #if [ $(isError "$github_answer") == "true" ]; then
+	#  throw "/!\ Cannot find release github ID for git tag ${1}"
+  #fi
+
+  #echo $(getDataField "$github_answer" "id")
+
+}
+
+function createRelease(){
+  local release_name="authproxy-0.0.7"
+
+  #TODO : parse name from .cr-release-packages/*.tgz
+
+  local release_desc="check this out"
+#  if [ ! -z "$3" ]; then
+#    release_desc="$3"
+#  fi
+  local draft="true"
+#  if [ ! -z "$2" ]; then
+#    draft="$2"
+#  fi
+  local dField=""
+  # Connect github to create release
+  infoMsg "Connecting github to create release: $release_name"
+
+#  if [ $# -eq 2 ]; then
+#    release_desc=$2
+#  fi
+  cat <<END
+{
+ "tag_name": "$release_name",
+ "target_commitish": "master",
+ "name": "$release_name",
+ "body": "$release_desc",
+ "draft": $draft,
+ "prerelease": false
+}
+END
+  curl --user ${owner}:${CR_TOKEN} \
+     --request POST \
+#     --output "$github_answer" \
+#     --silent \
+     --data @- \
+     https://api.github.com/repos/${OWNER}/${REPOSITORY}/releases <<END
+{
+ "tag_name": "$release_name",
+ "target_commitish": "master",
+ "name": "$release_name",
+ "body": "$release_desc",
+ "draft": $draft,
+ "prerelease": false
+}
+END
+
+#  #do we find that release ?
+#  dField=$(getDataField "$github_answer" "errors.0.code")
+#  if [ "$dField" == "already_exists" ]; then
+#	  throw "/!\ Release ${1} already exists, cannot create it again."
+#  fi
+#
+#  #if created, we should have a github ID, show it!
+#  dField=$(getDataField "$github_answer" "id")
+#  if [ ! -z "$dField" ]; then
+#	  infoMsg "  created with github ID: $dField"
+#  else
+#    dField=$(getDataField "$github_answer" "message")
+#	  throw "  Failed. $dField"
+#  fi
+#  # show tag, which is needed to access a draft release
+#  tagField=$(getDataField "$github_answer" "html_url")
+#  if [ ! -z "$tagField" ]; then
+#    infoMsg "  tag is: $(echo $tagField | sed -e 's@.*/@@')"
+#  else
+#    msgField=$(getDataField "$github_answer" "message")
+#	  throw "  Failed. $msgField"
+#  fi
 }
 
 update_index() {
@@ -268,5 +363,6 @@ update_index() {
 
     popd > /dev/null
 }
+
 
 main "$@"
