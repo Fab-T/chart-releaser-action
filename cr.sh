@@ -75,9 +75,13 @@ main() {
                 echo "Chart '$chart' no longer exists in repo. Skipping it..."
             fi
         done
+
+        #making sure Logs in actions are clear
         sleep 1
         release_charts
+        #making sure Logs in actions are clear
         sleep 1
+
         if [[ "$index" == "true" ]]; then
             update_index
         fi
@@ -234,126 +238,8 @@ package_chart() {
 release_charts() {
     echo 'Releasing charts...'
 
-        #publish in another repo is not possible using cr upload
-        #It isn't currently possible to request page builds as a GitHub App installation (server-to-server request)
+        cr upload -o "$owner" -r "$repo" -u "$charts_repo_url" -t "$CR_TOKEN"
 
-        #modified_repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
-        local release_name="authproxy-0.0.7"
-        #TODO : parse name from .cr-release-packages/*.tgz
-
-        #Modifying repo_url to get a user-to-server request
-        #
-        github_answer="_ga_.json"
-        local release_desc="check this out"
-        local draft="true"
-        echo "Connecting github to create release: $release_name"
-        #TODO : owner might not be the name of the github org
-
-        cat <<END
-{
- "tag_name": "$release_name",
- "target_commitish": "master",
- "name": "$release_name",
- "body": "$release_desc",
- "draft": $draft,
- "prerelease": false
-}
-END
-        curl --header "Authorization: token ${CR_TOKEN}" \
-           --request POST \
-           --output "$github_answer" \
-           --silent \
-           --data @- \
-           https://api.github.com/repos/${owner}/${repo}/releases <<END
-{
- "tag_name": "$release_name",
- "target_commitish": "master",
- "name": "$release_name",
- "body": "$release_desc",
- "draft": $draft,
- "prerelease": false
-}
-END
-
-        echo "Published result: "
-        cat $github_answer
-
-
-}
-
-
-function createRelease(){
-
-
-  local release_desc="check this out"
-#  if [ ! -z "$3" ]; then
-#    release_desc="$3"
-#  fi
-  local draft="true"
-#  if [ ! -z "$2" ]; then
-#    draft="$2"
-#  fi
-  local dField=""
-  # Connect github to create release
-  #infoMsg "Connecting github to create release: $release_name"
-  echo "Connecting github to create release: $release_name"
-
-  #TODO : owner might not be the name of the github org
-
-#  if [ $# -eq 2 ]; then
-#    release_desc=$2
-#  fi
-  cat <<END
-{
- "tag_name": "$release_name",
- "target_commitish": "master",
- "name": "$release_name",
- "body": "$release_desc",
- "draft": $draft,
- "prerelease": false
-}
-END
-  curl --user ${owner}:${CR_TOKEN} \
-     --request POST \
-     --output "$github_answer" \
-     --silent \
-     --data @- \
-     https://api.github.com/repos/${owner}/${repo}/releases <<END
-{
- "tag_name": "$release_name",
- "target_commitish": "master",
- "name": "$release_name",
- "body": "$release_desc",
- "draft": $draft,
- "prerelease": false
-}
-END
-
-echo "Published result: "
-cat $github_answer
-
-#  #do we find that release ?
-#  dField=$(getDataField "$github_answer" "errors.0.code")
-#  if [ "$dField" == "already_exists" ]; then
-#	  throw "/!\ Release ${1} already exists, cannot create it again."
-#  fi
-#
-#  #if created, we should have a github ID, show it!
-#  dField=$(getDataField "$github_answer" "id")
-#  if [ ! -z "$dField" ]; then
-#	  infoMsg "  created with github ID: $dField"
-#  else
-#    dField=$(getDataField "$github_answer" "message")
-#	  throw "  Failed. $dField"
-#  fi
-#  # show tag, which is needed to access a draft release
-#  tagField=$(getDataField "$github_answer" "html_url")
-#  if [ ! -z "$tagField" ]; then
-#    infoMsg "  tag is: $(echo $tagField | sed -e 's@.*/@@')"
-#  else
-#    msgField=$(getDataField "$github_answer" "message")
-#	  throw "  Failed. $msgField"
-#  fi
 }
 
 update_index() {
@@ -363,21 +249,21 @@ update_index() {
 
     cr index -o "$owner" -r "$repo" -c "$charts_repo_url"
 
-    gh_pages_worktree=$(mktemp -d)
-
-    git worktree add "$gh_pages_worktree" gh-pages
-
-    cp --force .cr-index/index.yaml "$gh_pages_worktree/index.yaml"
-
-    pushd "$gh_pages_worktree" > /dev/null
-
-    git add index.yaml
-    git commit --message="Update index.yaml" --signoff
-
-    local repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
-    git push "$repo_url" gh-pages
-
-    popd > /dev/null
+#    gh_pages_worktree=$(mktemp -d)
+#
+#    git worktree add "$gh_pages_worktree" gh-pages
+#
+#    cp --force .cr-index/index.yaml "$gh_pages_worktree/index.yaml"
+#
+#    pushd "$gh_pages_worktree" > /dev/null
+#
+#    git add index.yaml
+#    git commit --message="Update index.yaml" --signoff
+#
+#    local repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
+#    git push "$repo_url" gh-pages
+#
+#    popd > /dev/null
 }
 
 

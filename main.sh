@@ -40,8 +40,8 @@ main() {
         args+=(--charts-repo-url "${INPUT_CHARTS_REPO_URL}")
     fi
 
-    if [[ -n "${INPUT_DO_INDEX:-}" ]]; then
-        args+=(--index "${INPUT_DO_INDEX}")
+    if [[ -n "${INPUT_TOINDEX:-}" ]]; then
+        args+=(--index "${INPUT_TOINDEX}")
     fi
 
 
