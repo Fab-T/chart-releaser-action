@@ -32,6 +32,7 @@ Usage: $(basename "$0") <options>
     -u, --charts-repo-url    The GitHub Pages URL to the charts repo (default: https://<owner>.github.io/<repo>)
     -o, --owner              The repo owner
     -r, --repo               The repo name
+    -i, --index              Do you need the index generated : "true" or "false" (default: "true")
 EOF
 }
 
@@ -41,6 +42,7 @@ main() {
     local owner=
     local repo=
     local charts_repo_url=
+    local index="true"
 
     parse_command_line "$@"
 
@@ -75,7 +77,9 @@ main() {
         done
 
         release_charts
-        update_index
+        if [[ "$index" == "true" ]]; then
+            update_index
+        fi
     else
         echo "Nothing to do. No chart changes detected."
     fi
@@ -116,6 +120,16 @@ parse_command_line() {
                     shift
                 else
                     echo "ERROR: '-u|--charts-repo-url' cannot be empty." >&2
+                    show_help
+                    exit 1
+                fi
+                ;;
+            -i|--index)
+                if [[ -n "${2:-}" ]]; then
+                    index="$2"
+                    shift
+                else
+                    echo "ERROR: '-i|--index' cannot be empty." >&2
                     show_help
                     exit 1
                 fi
@@ -218,7 +232,7 @@ package_chart() {
 
 release_charts() {
     echo 'Releasing charts...'
-    cr upload -o "$owner" -r "$repo"
+    cr upload -o "$owner" -r "$repo" -u "$charts_repo_url" -t "$CR_TOKEN"
 }
 
 update_index() {
