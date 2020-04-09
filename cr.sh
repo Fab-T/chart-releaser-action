@@ -76,7 +76,7 @@ main() {
             fi
         done
 
-        release_charts
+        release_charts()
         if [[ "$index" == "true" ]]; then
             update_index
         fi
@@ -232,7 +232,17 @@ package_chart() {
 
 release_charts() {
     echo 'Releasing charts...'
-    cr upload -o "$owner" -r "$repo" -u "$charts_repo_url" -t "$CR_TOKEN"
+    if [[ -n $charts_repo_url ]];then
+        #publish in another repo
+        #It isn't currently possible to request page builds as a GitHub App installation (server-to-server request)
+        #Modifying repo_url to get a user-to-server request
+        #TODO: Parse charts_repo_url to construct modified_repo_url as owner might not be the correst path
+        modified_repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
+        cr upload -o "$owner" -r "$repo" -u modified_repo_url -t "$CR_TOKEN"
+    else
+        #publish locally
+        cr upload -o "$owner" -r "$repo"
+    fi
 }
 
 update_index() {
