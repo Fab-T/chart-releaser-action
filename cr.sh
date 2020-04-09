@@ -75,8 +75,9 @@ main() {
                 echo "Chart '$chart' no longer exists in repo. Skipping it..."
             fi
         done
-
+        sleep 1
         release_charts
+        sleep 1
         if [[ "$index" == "true" ]]; then
             update_index
         fi
@@ -232,24 +233,57 @@ package_chart() {
 
 release_charts() {
     echo 'Releasing charts...'
-    if [[ -n $charts_repo_url ]];then
-        #publish in another repo
-        #It isn't currently possible to request page builds as a GitHub App installation (server-to-server request)
-        #Modifying repo_url to get a user-to-server request
-        #TODO: Parse charts_repo_url to construct modified_repo_url as owner might not be the correct path
-        #modified_repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
-        #cr upload -o "$owner" -r "$repo" -u modified_repo_url -t "$CR_TOKEN"
 
+        #publish in another repo is not possible using cr upload
+        #It isn't currently possible to request page builds as a GitHub App installation (server-to-server request)
+
+        #modified_repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
         local release_name="authproxy-0.0.7"
         #TODO : parse name from .cr-release-packages/*.tgz
 
+        #Modifying repo_url to get a user-to-server request
+        #
+        local release_desc="check this out"
 
-        getGithubReleaseId
-        createRelease
-    else
-        #publish locally
-        cr upload -o "$owner" -r "$repo"
-    fi
+        local draft="true"
+
+          local dField=""
+
+          echo "Connecting github to create release: $release_name"
+
+          #TODO : owner might not be the name of the github org
+
+
+          cat <<END
+        {
+         "tag_name": "$release_name",
+         "target_commitish": "master",
+         "name": "$release_name",
+         "body": "$release_desc",
+         "draft": $draft,
+         "prerelease": false
+        }
+        END
+          curl --header "Authorization: token ${CR_TOKEN}" \
+             --request POST \
+             --output "$github_answer" \
+             --silent \
+             --data @- \
+             https://api.github.com/repos/${owner}/${repo}/releases <<END
+        {
+         "tag_name": "$release_name",
+         "target_commitish": "master",
+         "name": "$release_name",
+         "body": "$release_desc",
+         "draft": $draft,
+         "prerelease": false
+        }
+        END
+
+        echo "Published result: "
+        cat $github_answer
+
+
 }
 
 getGithubReleaseId() {
@@ -291,6 +325,9 @@ function createRelease(){
   # Connect github to create release
   #infoMsg "Connecting github to create release: $release_name"
   echo "Connecting github to create release: $release_name"
+
+  #TODO : owner might not be the name of the github org
+
 #  if [ $# -eq 2 ]; then
 #    release_desc=$2
 #  fi
