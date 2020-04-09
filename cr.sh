@@ -76,7 +76,7 @@ main() {
             fi
         done
 
-        release_charts()
+        release_charts
         if [[ "$index" == "true" ]]; then
             update_index
         fi
