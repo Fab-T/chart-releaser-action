@@ -240,6 +240,10 @@ release_charts() {
         #modified_repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
         #cr upload -o "$owner" -r "$repo" -u modified_repo_url -t "$CR_TOKEN"
 
+        local release_name="authproxy-0.0.7"
+        #TODO : parse name from .cr-release-packages/*.tgz
+
+
         getGithubReleaseId
         createRelease
     else
@@ -256,7 +260,7 @@ getGithubReleaseId() {
   curl --user ${owner}:${CR_TOKEN} \
      --request GET \
      --data @- \
-     https://api.github.com/repos/${OWNER}/${REPOSITORY}/releases/tags/${1} <<END
+     https://api.github.com/repos/${owner}/${repo}/releases/tags/${release_name} <<END
 END
 
   #do we have an error ?
@@ -269,9 +273,7 @@ END
 }
 
 function createRelease(){
-  local release_name="authproxy-0.0.7"
 
-  #TODO : parse name from .cr-release-packages/*.tgz
 
   local release_desc="check this out"
 #  if [ ! -z "$3" ]; then
@@ -301,7 +303,7 @@ END
   curl --user ${owner}:${CR_TOKEN} \
      --request POST \
      --data @- \
-     https://api.github.com/repos/${OWNER}/${REPOSITORY}/releases <<END
+     https://api.github.com/repos/${owner}/${repo}/releases <<END
 {
  "tag_name": "$release_name",
  "target_commitish": "master",
