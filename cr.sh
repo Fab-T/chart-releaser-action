@@ -255,8 +255,6 @@ getGithubReleaseId() {
 
   curl --user ${owner}:${CR_TOKEN} \
      --request GET \
-     #--output "$github_answer" \
-     #--silent \
      --data @- \
      https://api.github.com/repos/${OWNER}/${REPOSITORY}/releases/tags/${1} <<END
 END
@@ -302,8 +300,6 @@ function createRelease(){
 END
   curl --user ${owner}:${CR_TOKEN} \
      --request POST \
-#     --output "$github_answer" \
-#     --silent \
      --data @- \
      https://api.github.com/repos/${OWNER}/${REPOSITORY}/releases <<END
 {
