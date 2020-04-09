@@ -243,42 +243,37 @@ release_charts() {
 
         #Modifying repo_url to get a user-to-server request
         #
+        github_answer="_ga_.json"
         local release_desc="check this out"
-
         local draft="true"
+        echo "Connecting github to create release: $release_name"
+        #TODO : owner might not be the name of the github org
 
-          local dField=""
-
-          echo "Connecting github to create release: $release_name"
-
-          #TODO : owner might not be the name of the github org
-
-
-          cat <<END
-        {
-         "tag_name": "$release_name",
-         "target_commitish": "master",
-         "name": "$release_name",
-         "body": "$release_desc",
-         "draft": $draft,
-         "prerelease": false
-        }
-        END
-          curl --header "Authorization: token ${CR_TOKEN}" \
-             --request POST \
-             --output "$github_answer" \
-             --silent \
-             --data @- \
-             https://api.github.com/repos/${owner}/${repo}/releases <<END
-        {
-         "tag_name": "$release_name",
-         "target_commitish": "master",
-         "name": "$release_name",
-         "body": "$release_desc",
-         "draft": $draft,
-         "prerelease": false
-        }
-        END
+        cat <<END
+{
+ "tag_name": "$release_name",
+ "target_commitish": "master",
+ "name": "$release_name",
+ "body": "$release_desc",
+ "draft": $draft,
+ "prerelease": false
+}
+END
+        curl --header "Authorization: token ${CR_TOKEN}" \
+           --request POST \
+           --output "$github_answer" \
+           --silent \
+           --data @- \
+           https://api.github.com/repos/${owner}/${repo}/releases <<END
+{
+ "tag_name": "$release_name",
+ "target_commitish": "master",
+ "name": "$release_name",
+ "body": "$release_desc",
+ "draft": $draft,
+ "prerelease": false
+}
+END
 
         echo "Published result: "
         cat $github_answer
@@ -286,29 +281,6 @@ release_charts() {
 
 }
 
-getGithubReleaseId() {
-  # Connect github to check whether or not release already exists
-  #TEST
-  github_answer="_ga_.json"
-
-  curl --user ${owner}:${CR_TOKEN} \
-     --request GET \
-     --output "$github_answer" \
-     --silent \
-     --data @- \
-     https://api.github.com/repos/${owner}/${repo}/releases/tags/${release_name} <<END
-END
-
-  #do we have an error ?
-  #if [ $(isError "$github_answer") == "true" ]; then
-	#  throw "/!\ Cannot find release github ID for git tag ${1}"
-  #fi
-
-  #echo $(getDataField "$github_answer" "id")
-  echo "release result : "
-  cat $github_answer
-
-}
 
 function createRelease(){
 
