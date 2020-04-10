@@ -24,8 +24,10 @@ main() {
     owner=$(cut -d '/' -f 1 <<< "$GITHUB_REPOSITORY")
 
     if [[ -n "${INPUT_CHARTS_REPO:-}" ]]; then
+        #repo provided as input (most likely external repo)
         repo=${INPUT_CHARTS_REPO}
     else
+        #local repo - charts published in same repo
         repo=$(cut -d '/' -f 2 <<< "$GITHUB_REPOSITORY")
     fi
 
@@ -39,12 +41,6 @@ main() {
     if [[ -n "${INPUT_CHARTS_REPO_URL:-}" ]]; then
         args+=(--charts-repo-url "${INPUT_CHARTS_REPO_URL}")
     fi
-
-    if [[ -n "${INPUT_TOINDEX:-}" ]]; then
-        args+=(--index "${INPUT_TOINDEX}")
-    fi
-
-
 
     "$SCRIPT_DIR/cr.sh" "${args[@]}"
 }
