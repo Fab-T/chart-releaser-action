@@ -238,7 +238,7 @@ package_chart() {
 release_charts() {
     echo 'Releasing charts...'
 
-        cr upload -o "$owner" -r "$repo" -u "$charts_repo_url" -t "$CR_TOKEN"
+        cr upload -o "$owner" -r "$repo" -t "$CR_TOKEN"
 
 }
 
@@ -247,23 +247,28 @@ update_index() {
 
     set -x
 
-    cr index -o "$owner" -r "$repo" -c "$charts_repo_url"
+    cr index -o "$owner" -r "$repo" -c "$charts_repo_url" -t "$CR_TOKEN"
 
-#    gh_pages_worktree=$(mktemp -d)
-#
-#    git worktree add "$gh_pages_worktree" gh-pages
-#
-#    cp --force .cr-index/index.yaml "$gh_pages_worktree/index.yaml"
-#
-#    pushd "$gh_pages_worktree" > /dev/null
-#
-#    git add index.yaml
-#    git commit --message="Update index.yaml" --signoff
-#
-#    local repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
-#    git push "$repo_url" gh-pages
-#
-#    popd > /dev/null
+    gh_pages_worktree=$(mktemp -d)
+
+    # contruct remote url in case we publish on external repo
+    remote_url=https://github.com/$owner/${repo}.git
+    # add a new remote
+    git remote add -t gh-pages remote2 $remote_url
+    # set the worktree on this new remote
+    git worktree add "$gh_pages_worktree" remotes/remote2/gh-pages
+
+    cp --force .cr-index/index.yaml "$gh_pages_worktree/index.yaml"
+
+    pushd "$gh_pages_worktree" > /dev/null
+
+    git add index.yaml
+    git commit --message="Update index.yaml" --signoff
+
+    local repo_url=https://x-access-token:${CR_TOKEN}@github.com/${owner}/${repo}
+    git push "$repo_url" HEAD:gh-pages
+
+    popd > /dev/null
 }
 
 
