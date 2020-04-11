@@ -255,8 +255,9 @@ update_index() {
     remote_url=https://github.com/$owner/${repo}.git
     # add a new remote
     git remote add -t gh-pages remote2 $remote_url
+    git fetch remote2
     # set the worktree on this new remote
-    git worktree add "$gh_pages_worktree" remotes/remote2/gh-pages
+    git worktree add "$gh_pages_worktree" gh-pages
 
     cp --force .cr-index/index.yaml "$gh_pages_worktree/index.yaml"
 
