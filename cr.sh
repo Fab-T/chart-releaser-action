@@ -51,6 +51,9 @@ main() {
     repo_root=$(git rev-parse --show-toplevel)
     pushd "$repo_root" > /dev/null
 
+    #defining new remote in case of pushing to external repo
+    create_new_remote
+
     echo 'Looking up latest tag...'
     local latest_tag
     latest_tag=$(lookup_latest_tag)
@@ -192,9 +195,21 @@ install_chart_releaser() {
     sudo mv cr /usr/local/bin/cr
 }
 
-lookup_latest_tag() {
-    git fetch --tags > /dev/null 2>&1
+create_new_remote(){
+    gh_pages_worktree=$(mktemp -d)
 
+    # contruct remote url in case we publish on external repo
+    remote_url=https://github.com/$owner/${repo}.git
+    # add a new remote
+    git remote add -t gh-pages remote2 $remote_url
+    git fetch remote2 --tags > /dev/null 2>&1
+    # set the worktree on this new remote
+    git worktree add "$gh_pages_worktree" gh-pages
+
+}
+
+lookup_latest_tag() {
+    #tags available - fetch done in create new_remote
     if ! git describe --tags --abbrev=0 2> /dev/null; then
         git rev-list --max-parents=0 --first-parent HEAD
     fi
@@ -248,16 +263,6 @@ update_index() {
     set -x
 
     cr index -o "$owner" -r "$repo" -c "$charts_repo_url" -t "$CR_TOKEN"
-
-    gh_pages_worktree=$(mktemp -d)
-
-    # contruct remote url in case we publish on external repo
-    remote_url=https://github.com/$owner/${repo}.git
-    # add a new remote
-    git remote add -t gh-pages remote2 $remote_url
-    git fetch remote2
-    # set the worktree on this new remote
-    git worktree add "$gh_pages_worktree" gh-pages
 
     cp --force .cr-index/index.yaml "$gh_pages_worktree/index.yaml"
 
