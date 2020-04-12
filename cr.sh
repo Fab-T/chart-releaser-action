@@ -180,8 +180,9 @@ install_chart_releaser() {
     sudo mv cr /usr/local/bin/cr
 }
 
-create_new_remote(){
+create_new_remote() {
     echo "creating new remote..."
+
     set -x
     gh_pages_worktree=$(mktemp -d)
 
