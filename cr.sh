@@ -181,13 +181,15 @@ install_chart_releaser() {
 }
 
 create_new_remote(){
+    echo "creating new remote..."
+    set -x
     gh_pages_worktree=$(mktemp -d)
 
     # contruct remote url in case we publish on external repo
     remote_url=https://github.com/$owner/${repo}.git
     # add a new remote
     git remote add -t gh-pages remote2 $remote_url
-    git fetch remote2 --tags > /dev/null 2>&1
+    git fetch --tags remote2 > /dev/null 2>&1
     # set the worktree on this new remote
     git worktree add "$gh_pages_worktree" gh-pages
 
