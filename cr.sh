@@ -58,10 +58,12 @@ main() {
 #    echo 'Looking up latest tag...'
 #    local latest_tag
 #    latest_tag=$(lookup_latest_tag)
+    #latest tag is last commit
+    latest_tag=$(git rev-parse HEAD)
 
-    echo "Discovering changed charts ..."
+    echo "Discovering changed charts since '$latest_tag'..."
     local changed_charts=()
-    readarray -t changed_charts <<< "$(lookup_changed_charts)"
+    readarray -t changed_charts <<< "$(lookup_changed_charts "$latest_tag")"
 
     if [[ -n "${changed_charts[*]}" ]]; then
         install_chart_releaser
