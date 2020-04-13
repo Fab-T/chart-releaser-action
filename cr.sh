@@ -50,15 +50,18 @@ main() {
     pushd "$repo_root" > /dev/null
 
     #defining new remote in case of pushing to external repo
+    set -x
     create_new_remote
 
-    echo 'Looking up latest tag...'
-    local latest_tag
-    latest_tag=$(lookup_latest_tag)
+# This doesn't work for a remote repo
+## TODO :  DELETE commented steps ##
+#    echo 'Looking up latest tag...'
+#    local latest_tag
+#    latest_tag=$(lookup_latest_tag)
 
-    echo "Discovering changed charts since '$latest_tag'..."
+    echo "Discovering changed charts ..."
     local changed_charts=()
-    readarray -t changed_charts <<< "$(lookup_changed_charts "$latest_tag")"
+    readarray -t changed_charts <<< "$(lookup_changed_charts)"
 
     if [[ -n "${changed_charts[*]}" ]]; then
         install_chart_releaser
@@ -86,6 +89,7 @@ main() {
     else
         echo "Nothing to do. No chart changes detected."
     fi
+
 
     popd > /dev/null
 }
@@ -183,7 +187,6 @@ install_chart_releaser() {
 create_new_remote() {
     echo "creating new remote..."
 
-    set -x
     gh_pages_worktree=$(mktemp -d)
 
     # contruct remote url in case we publish on external repo
@@ -196,12 +199,12 @@ create_new_remote() {
 
 }
 
-lookup_latest_tag() {
-    #tags available - fetch done in create new_remote
-    if ! git describe --tags --abbrev=0 2> /dev/null; then
-        git rev-list --max-parents=0 --first-parent HEAD
-    fi
-}
+#lookup_latest_tag() {
+#    #tags available - fetch done in create new_remote
+#    if ! git describe --tags --abbrev=0 gh-pages; then
+#        git rev-list --max-parents=0 --first-parent HEAD
+#    fi
+#}
 
 filter_charts() {
     while read chart; do
