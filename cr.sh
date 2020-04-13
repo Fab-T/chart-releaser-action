@@ -59,7 +59,7 @@ main() {
 #    local latest_tag
 #    latest_tag=$(lookup_latest_tag)
 
-    echo "Discovering changed charts since '$latest_tag'..."
+    echo "Discovering changed charts ..."
     local changed_charts=()
     readarray -t changed_charts <<< "$(lookup_changed_charts)"
 
