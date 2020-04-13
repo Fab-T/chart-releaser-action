@@ -58,12 +58,10 @@ main() {
 #    echo 'Looking up latest tag...'
 #    local latest_tag
 #    latest_tag=$(lookup_latest_tag)
-    #latest tag is last commit
-    latest_tag=$(git rev-parse HEAD)
 
     echo "Discovering changed charts since '$latest_tag'..."
     local changed_charts=()
-    readarray -t changed_charts <<< "$(lookup_changed_charts "$latest_tag")"
+    readarray -t changed_charts <<< "$(lookup_changed_charts)"
 
     if [[ -n "${changed_charts[*]}" ]]; then
         install_chart_releaser
@@ -221,10 +219,9 @@ filter_charts() {
 }
 
 lookup_changed_charts() {
-    local commit="$1"
-
+    #look up for changed files in the latest commit
     local changed_files
-    changed_files=$(git diff --find-renames --name-only "$commit" -- "$charts_dir")
+    changed_files=$(git diff-tree --no-commit-id --name-only -r $(git rev-parse HEAD))
 
     local fields
     if [[ "$charts_dir" == '.' ]]; then
