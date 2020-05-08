@@ -48,8 +48,10 @@ main() {
     local repo_root
     repo_root=$(git rev-parse --show-toplevel)
     pushd "$repo_root" > /dev/null
-	
-	set -x
+
+    #defining new remote in case of pushing to external repo
+    set -x
+    create_new_remote
 
 
     echo "Discovering changed charts ..."
@@ -72,9 +74,6 @@ main() {
                 echo "Chart '$chart' no longer exists in repo. Skipping it..."
             fi
         done
-		
-		#defining new remote in case of pushing to external repo
-		create_new_remote
 
         #poor github struggling with logs rendering: give it some time
         sleep 1
