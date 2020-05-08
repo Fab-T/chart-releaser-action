@@ -48,16 +48,9 @@ main() {
     local repo_root
     repo_root=$(git rev-parse --show-toplevel)
     pushd "$repo_root" > /dev/null
+	
+	set -x
 
-    #defining new remote in case of pushing to external repo
-    set -x
-    create_new_remote
-
-# This doesn't work for a remote repo
-## TODO :  DELETE commented steps ##
-#    echo 'Looking up latest tag...'
-#    local latest_tag
-#    latest_tag=$(lookup_latest_tag)
 
     echo "Discovering changed charts ..."
     local changed_charts=()
@@ -79,8 +72,11 @@ main() {
                 echo "Chart '$chart' no longer exists in repo. Skipping it..."
             fi
         done
+		
+		#defining new remote in case of pushing to external repo
+		create_new_remote
 
-        #poor github struggling with logs rendering: git it some time
+        #poor github struggling with logs rendering: give it some time
         sleep 1
         release_charts
         sleep 1
@@ -201,8 +197,9 @@ create_new_remote() {
 }
 
 #lookup_latest_tag() {
-#    #tags available - fetch done in create new_remote
-#    if ! git describe --tags --abbrev=0 gh-pages; then
+#    git fetch --tags > /dev/null 2>&1
+#
+#    if ! git describe --tags --abbrev=0 2> /dev/null; then
 #        git rev-list --max-parents=0 --first-parent HEAD
 #    fi
 #}
@@ -222,7 +219,7 @@ filter_charts() {
 lookup_changed_charts() {
     #look up for changed files in the latest commit
     local changed_files
-    changed_files=$(git diff --no-commit-id --name-only ..master)
+    changed_files=$(git diff-tree --no-commit-id --name-only -r $(git rev-parse HEAD))
 
     local fields
     if [[ "$charts_dir" == '.' ]]; then
