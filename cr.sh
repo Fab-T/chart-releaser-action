@@ -193,7 +193,8 @@ create_new_remote() {
     remote_url=https://github.com/$owner/${repo}.git
     # add a new remote
     git remote add -t gh-pages remote2 $remote_url
-    git fetch --tags -f remote2 gh-pages
+    # fetch from the new remote
+    git fetch --tags -f remote2 gh-pages > /dev/null 2>&1
     # set the worktree on this new remote
     git worktree add "$gh_pages_worktree" gh-pages
 
@@ -221,7 +222,7 @@ filter_charts() {
 lookup_changed_charts() {
     #look up for changed files in the latest commit
     local changed_files
-    changed_files=$(git diff-tree --no-commit-id --name-only -r $(git rev-parse HEAD))
+    changed_files=$(git diff --no-commit-id --name-only ..master)
 
     local fields
     if [[ "$charts_dir" == '.' ]]; then
